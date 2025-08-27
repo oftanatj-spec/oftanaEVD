@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Keyboard Typing Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #eee;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .container {
+      text-align: center;
+      background: #1c1c1c;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.5);
+      width: 90%;
+      max-width: 500px;
+    }
+    .prompt {
+      margin: 20px auto;
+      font-size: 24px;
+      min-height: 50px;
+      color: #00ff88;
+    }
+    .hidden { display: none; }
+    textarea, input, button {
+      font-size: 16px;
+      padding: 8px;
+      margin: 5px;
+      border: none;
+      border-radius: 5px;
+    }
+    textarea {
+      width: calc(100% - 20px);
+      max-width: 400px;
+      height: 80px;
+      resize: vertical;
+    }
+    button {
+      background: #00ff88;
+      color: #111;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #00cc6a;
+    }
+    #customWordsList {
+      background: #222;
+      padding: 10px;
+      border-radius: 5px;
+      min-height: 30px;
+      margin-bottom: 10px;
+      white-space: pre-wrap;
+    }
+    #stats {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #ccc;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Keyboard Typing Game</h1>
+
+    <textarea id="wordInput" placeholder="Enter words separated by spaces or new lines"></textarea>
+    <button onclick="applyWords()">Apply Words</button>
+    <button id="resetWordsBtn" onclick="resetWords()">Reset Words</button>
+    
+    <div id="customWordsList"></div>
+    <button id="startBtn" onclick="startGame()">Start Game</button>
+
+    <div id="gameArea" class="hidden">
+      <div id="prompt" class="prompt"></div>
+      <input id="typingInput" type="text" onkeydown="checkWord(event)" autocomplete="off" />
+      <div id="stats">WPM: <span id="wpm">0</span> | Accuracy: <span id="accuracy">100%</span></div>
+      <button onclick="restartGame()">Restart Game</button>
+    </div>
+  </div>
+
+  <script>
+    let customWords = [];
+    let index = 0, correct = 0, errors = 0, startTime;
+  
+    function applyWords() {
+      const rawText = document.getElementById('wordInput').value.trim();
+      if (!rawText) return;
+  
+      const newWords = rawText.split(/\s+/);
+      customWords.push(...newWords);
+      updateCustomWordsDisplay();
+  
+      document.getElementById('wordInput').value = '';
+      document.getElementById('wordInput').focus();
+    }
+  
+    function updateCustomWordsDisplay() {
+      document.getElementById('customWordsList').textContent = customWords.join(' ');
+    }
+  
+    function startGame() {
+      if (customWords.length === 0) {
+        alert('Add at least one word before starting.');
+        return;
+      }
+      index = 0; correct = 0; errors = 0;
+      startTime = Date.now();
+      document.getElementById('gameArea').classList.remove('hidden');
+      showPrompt();
+      document.getElementById('typingInput').focus();
+    }
+  
+    function showPrompt() {
+      document.getElementById('prompt').textContent = customWords[index] || '';
+    }
+  
+    function checkWord(event) {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        const typed = document.getElementById('typingInput').value.trim();
+        if (typed === customWords[index]) {
+          correct++;
+        } else {
+          errors++;
+        }
+        index++;
+        document.getElementById('typingInput').value = '';
+        if (index >= customWords.length) {
+          endGame();
+        } else {
+          showPrompt();
+        }
+      }
+    }
+  
+    function endGame() {
+      const elapsed = (Date.now() - startTime) / 60000;
+      const wpm = correct / elapsed;
+      const accuracy = (correct / (correct + errors)) * 100;
+      document.getElementById('wpm').textContent = wpm.toFixed(1);
+      document.getElementById('accuracy').textContent = accuracy.toFixed(0) + '%';
+      alert('Game Over! WPM: ' + wpm.toFixed(1) + ', Accuracy: ' + accuracy.toFixed(0) + '%');
+    }
+  
+    function restartGame() {
+      index = 0; correct = 0; errors = 0;
+      startTime = Date.now();
+      document.getElementById('typingInput').value = '';
+      showPrompt();
+      document.getElementById('typingInput').focus();
+    }
+  
+    function resetWords() {
+      customWords = [];
+      updateCustomWordsDisplay();
+      document.getElementById('wordInput').value = '';
+      document.getElementById('wordInput').focus();
+    }
+  
+    document.getElementById('wordInput').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        applyWords();
+      }
+    });
+  </script>  
+</body>
+</html>
